@@ -44,7 +44,7 @@ export default function EditRegistration() {
   const [durationTime, setDurationTime] = useState({ hour: 0, minute: 0 });
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const auctionId = 13; ////////////////////////////////////// 실제로는 props나 router에서 받아야 함
+  const auctionId = 13; // 실제로는 props나 router에서 받아야 함 <-- 라우팅 설정 필요
 
   const validateForm = () => {
     const totalImageCount = images.length + serverImages.length;

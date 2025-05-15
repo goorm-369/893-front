@@ -3,43 +3,31 @@
 import ImageSlider from "@/components/detail/ImageSlider";
 import SellerProductInfo from "@/components/detail/Product/Sell/SellerProductInfo";
 import GoodsInfo from "@/components/detail/Product/GoodsInfo";
-import ProductCard from "@/components/detail/Product/ProductCard";
+import AuctionCard from "@/components/detail/Product/AuctionCard";
 import BidHistory from "@/components/detail/Bid/BidHistory";
-import axios from "axios";
 import { AuctionBidData, Product } from "@/types/productData";
 import { useEffect, useState } from "react";
 
+import { getBidData,getProductData } from "@/lib/api/auction";
+import {dummyProduct} from "@/data/dummyProductData"
+import dummyBidData from "@/data/dummyBidData.json"
+
 export default function SellerDetailView({ itemId }: { itemId: number }) {
-  const [bidData, setBidData] = useState<AuctionBidData>();
-  const [productData, setProductData] = useState<Product>();
+  const [bidData, setBidData] = useState<AuctionBidData>(dummyBidData);
+  const [productData, setProductData] = useState<Product>(dummyProduct);
 
   useEffect(() => {
-    const fetchBidData = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8080/api/auctions/${itemId}/bids`,
-          { withCredentials: true }
-        );
-        setBidData(response.data.data);
-      } catch (error) {
-        console.error("입찰 내역 불러오기 실패:", error);
-      }
+    const fetchData = async () => {
+      const [bid, product] = await Promise.all([
+        getBidData(itemId),
+        getProductData(itemId),
+      ]);
+
+      if (bid) setBidData(bid);
+      if (product) setProductData(product);
     };
 
-    const fetchProductData = async () => {
-      try {
-        const response = await axios.get(
-          `http://localhost:8080/api/auctions/${itemId}`,
-          { withCredentials: true }
-        );
-        setProductData(response.data.data);
-      } catch (error) {
-        console.error("상품 정보 불러오기 실패:", error);
-      }
-    };
-
-    fetchBidData();
-    fetchProductData();
+    fetchData();
   }, [itemId]);
 
   if (!productData || !bidData) return <div>로딩 중...</div>;
@@ -77,7 +65,7 @@ export default function SellerDetailView({ itemId }: { itemId: number }) {
         <h2 className="pl-4 mb-2 text-xl font-bold">관련 상품</h2>
         <div className="flex gap-6 pl-4 overflow-x-auto scrollbar-hide">
           <div className="min-w-[231px]">
-            <ProductCard product={productData} />
+            <AuctionCard product={productData} />
           </div>
         </div>
       </div>

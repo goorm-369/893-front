@@ -39,6 +39,8 @@ export function AuctionState({
     return `${hours}:${min}:${sec}`;
   };
 
+  
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">

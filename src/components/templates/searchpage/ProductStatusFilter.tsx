@@ -25,7 +25,7 @@ export default function ProductStatusFilter() {
       params.delete(key)
     }
     
-    router.replace(`/search?${params.toString()}`)
+    router.replace(`/search?${params.toString()}`, { scroll: false })
   }, [router, searchParams])
   
   return (

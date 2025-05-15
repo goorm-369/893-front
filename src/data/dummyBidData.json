@@ -1,0 +1,37 @@
+{
+  "auctionId": 1,
+  "totalBid": 3,
+  "totalBidder": 2,
+  "bids": [
+    {
+      "bidId": 1001,
+      "bidderEmail": "user1***@mail.com",
+      "bidPrice": 17000,
+      "createdAt": "2025-05-12T10:00:00Z",
+      "updatedAt": null
+    },
+    {
+      "bidId": 1002,
+      "bidderEmail": "user2***@mail.com",
+      "bidPrice": 18000,
+      "createdAt": "2025-05-13T11:30:00Z",
+      "updatedAt": null
+    },
+    {
+      "bidId": 1003,
+      "bidderEmail": "user1***@mail.com",
+      "bidPrice": 19000,
+      "createdAt": "2025-05-14T14:45:00Z",
+      "updatedAt": null
+    }
+  ],
+  "cancelledBids": [
+    {
+      "bidId": 999,
+      "bidderEmail": "cancelled***@mail.com",
+      "bidPrice": 16000,
+      "createdAt": "2025-05-11T09:00:00Z",
+      "updatedAt": "2025-05-11T10:00:00Z"
+    }
+  ]
+}

@@ -1,26 +1,66 @@
 "use client"
 
-import {useState, useRef, useEffect} from "react";
+import React, {useState, useRef, useEffect} from "react";
 import {ChevronDown, ChevronUp, Search, X} from "lucide-react";
 import searchData from "@/data/searchData.json";
 import { useRouter, useSearchParams } from "next/navigation";
 import RecentSearchContent from "../molecules/searchinput/RecentSearchContent";
 import RelatedSearchContent from "../molecules/searchinput/RelatedSearchContent";
-
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteSearchHistory, getRelatedWords, getUserSearchHistory, postSearchHistory } from "@/lib/api/searchbox";
 type SearchStatus = 'CLOSED' | 'RECENT_RECOMMENDED' | 'RELATED';
 
 export default function SearchInput() {
   const router = useRouter();
   const [searchStatus, setSearchStatus] = useState<SearchStatus>('CLOSED');
   const formRef = useRef<HTMLFormElement>(null);
-  const [recentSearches, setRecentSearches] = useState(searchData.recentSearches); // TODO 추후 백엔드 연동
   const [recommendedSearches] = useState(searchData.recommendedSearches); // TODO 추후 백엔드 연동
-  const [relatedWords] = useState(searchData.relatedWords); // TODO 추후 백엔드 연동
   const searchParams = useSearchParams()
   const currentKeyword = searchParams.get('keyword')
   const [inputValue, setInputValue] = useState(currentKeyword || "");
+  const [debouncedInputValue, setDebouncedInputValue] = useState(inputValue);
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedInputValue(inputValue);
+    }, 300);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [inputValue]);
+
+  const {data : searchHistory} = useQuery({
+    queryKey: ['searchHistory'],
+    queryFn: () => getUserSearchHistory(),
+  })
+  
+  const {data : relatedWords} = useQuery({
+    queryKey: ['relatedWords', debouncedInputValue],
+    queryFn: () => getRelatedWords(debouncedInputValue),
+    enabled: debouncedInputValue.length > 0,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  })
+  
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteSearchHistory(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['searchHistory'] });
+    },
+  })
+
+  const postMutation = useMutation({
+    mutationFn: (keyword: string) => postSearchHistory(keyword),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['searchHistory'] });
+    },
+  })
   
   const handleInputClick = () => {
+    postMutation.mutate(inputValue);
+
     if (searchStatus === 'CLOSED') {
       setSearchStatus(inputValue.length > 0 ? 'RELATED' : 'RECENT_RECOMMENDED');
     } else {
@@ -32,8 +72,8 @@ export default function SearchInput() {
     setSearchStatus('CLOSED');
   }
 
-  const handleDeleteSearch = (searchKeywordId: number) => {
-    setRecentSearches(prev => prev.filter((_, i) => i !== searchKeywordId));
+  const handleDeleteSearch = (id: number) => {
+    deleteMutation.mutate(id);
   }
 
   const handleDeleteCurrentSearch = () => {
@@ -42,7 +82,7 @@ export default function SearchInput() {
   }
 
   const handleDeleteAllSearches = () => {
-    setRecentSearches([]);
+    alert("추후 구현 예정"); // TODO 추후 구현 예정
   }
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +101,15 @@ export default function SearchInput() {
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
     if (inputValue.trim()) {
-      router.push(`/search?keyword=${encodeURIComponent(inputValue.trim())}`);
+      router.push(`/search?keyword=${inputValue.trim()}`);
+      setSearchStatus('CLOSED');
+    }
+  }
+
+  const handleClickWordButton = (event: React.MouseEvent, searchKeyword: string) => {
+    event.preventDefault();
+    if (searchKeyword.trim()) {
+      router.push(`/search?keyword=${searchKeyword.trim()}`);
       setSearchStatus('CLOSED');
     }
   }
@@ -128,16 +176,18 @@ export default function SearchInput() {
       {isRecentSearchContentOpen && (
         <RecentSearchContent
           handleDeleteAllSearches={handleDeleteAllSearches}
-          recentSearches={recentSearches}
+          recentSearches={searchHistory?.data || []}
           handleDeleteSearch={handleDeleteSearch}
           recommendedSearches={recommendedSearches}
           handleCloseSearchContent={handleCloseSearchContent}
+          handleClickRecentWord={handleClickWordButton}
         />
       )}
       {isRelatedSearchContentOpen && (
         <RelatedSearchContent
-          relatedWords={relatedWords}
+          relatedWords={relatedWords?.data || []}
           handleAddSearch={handleAddSearch}
+          handleClickRelatedWord={handleClickWordButton}
         />
       )}
     </form>

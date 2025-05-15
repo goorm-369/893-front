@@ -19,7 +19,7 @@ export default function ProductSort() {
       params.delete('sortBy')
     }
 
-    router.replace(`/search?${params.toString()}`)
+    router.replace(`/search?${params.toString()}`, { scroll: false })
   }, [router, searchParams])
 
   return (
@@ -28,7 +28,7 @@ export default function ProductSort() {
         정렬 기준 선택
       </div>
       <div className="px-4 py-2 flex items-center gap-4 h-10">
-        <SortButton label="최신순" selected={currentSort === 'latest'} onClick={() => handleSortChange('latest')} />
+        <SortButton label="최신순" selected={currentSort === 'latest' || !currentSort} onClick={() => handleSortChange('latest')} />
         <div className="w-1 h-1 bg-neutral-400/60" />
         <SortButton label="낮은 시작 가격순" selected={currentSort === 'price_asc'} onClick={() => handleSortChange('price_asc')} />
         <div className="w-1 h-1 bg-neutral-400/60" />

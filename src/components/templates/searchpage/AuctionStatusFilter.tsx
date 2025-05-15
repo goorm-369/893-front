@@ -23,7 +23,7 @@ export default function AuctionStatusFilter() {
       params.delete(key)
     }
     
-    router.replace(`/search?${params.toString()}`)
+    router.replace(`/search?${params.toString()}`, { scroll: false })
   }, [router, searchParams])
   
   return (

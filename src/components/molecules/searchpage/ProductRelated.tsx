@@ -6,8 +6,8 @@ export default function ProductRelated({ relatedWords }: { relatedWords: string[
       <div className="font-bold">
         연관
       </div>
-      {relatedWords.map((word) => (
-        <RelatedWordButton key={word} label={word} />
+      {relatedWords.map((word, index) => (
+        <RelatedWordButton key={index} label={word} />
       ))}
     </div>
   )

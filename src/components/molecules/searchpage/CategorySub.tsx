@@ -24,7 +24,7 @@ export default function CategorySub() {
       params.delete('detailCategoryId')
     }
     
-    router.replace(`/search?${params.toString()}`)
+    router.replace(`/search?${params.toString()}`, { scroll: false })
   }, [router, searchParams])
 
   return (

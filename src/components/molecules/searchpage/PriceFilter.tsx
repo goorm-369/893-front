@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 export default function PriceFilter() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [currentMinPrice, setCurrentMinPrice] = useState(parseInt(searchParams.get('priceMin') || '5000'))
-  const [currentMaxPrice, setCurrentMaxPrice] = useState(parseInt(searchParams.get('priceMax') || '60000'))
+  const [currentMinPrice, setCurrentMinPrice] = useState(parseInt(searchParams.get('minPrice') || '5000'))
+  const [currentMaxPrice, setCurrentMaxPrice] = useState(parseInt(searchParams.get('maxPrice') || '60000'))
   const minValueRef = useRef(currentMinPrice);
   const maxValueRef = useRef(currentMaxPrice);
   
@@ -23,15 +23,13 @@ export default function PriceFilter() {
   
   const handlePriceChangeApply = useCallback(() => {
     const params = new URLSearchParams(searchParams.toString())
-    if (currentMinPrice && currentMaxPrice) {
-      params.set('priceMin', currentMinPrice.toString())
-      params.set('priceMax', currentMaxPrice.toString())
-    }
-    router.replace(`/search?${params.toString()}`)
+    params.set('minPrice', currentMinPrice.toString())
+    params.set('maxPrice', currentMaxPrice.toString())
+    router.replace(`/search?${params.toString()}`, { scroll: false })
   }, [currentMinPrice, currentMaxPrice, router, searchParams])
   
   useEffect(() => {
-    if (searchParams.get('priceMin') === null || searchParams.get('priceMax') === null) {
+    if (searchParams.get('minPrice') === null || searchParams.get('maxPrice') === null) {
       handleRangeChange({ min: 5000, max: 60000 })
     }
   }, [searchParams])

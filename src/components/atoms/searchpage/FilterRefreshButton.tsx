@@ -1,13 +1,16 @@
 "use client"
 
 import { RefreshCcw } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function FilterRefreshButton() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   
   const handleRefresh = () => {
-    router.replace(`/search`)
+    const keyword = searchParams.get('keyword')
+    const newUrl = keyword ? `/search?keyword=${keyword}` : '/search'
+    router.replace(newUrl)
   }
 
   return (

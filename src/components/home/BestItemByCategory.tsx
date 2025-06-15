@@ -112,8 +112,10 @@ export default function BestByCategory({
                 </span>
               </div>
               <div className="p-3">
-                <h3 className="text-[18px] font-semibold">{item.title}</h3>
-                <p className="text-[16px] text-gray-500 mt-2">
+                <h3 className="text-[18px] font-semibold truncate">
+                  {item.title}
+                </h3>
+                <p className="text-[16px] text-gray-500 mt-2 truncate">
                   스크랩 {item.scrapCount}회 ·{" "}
                   {translateCondition(item.itemCondition)}
                 </p>

@@ -38,16 +38,6 @@ export default function RecentAuctionList({
                   className="rounded-xl object-cover w-full h-[130px]"
                 />
               </div>
-
-              {/* {item.isScraped && (
-                <div className="absolute p-1 rounded-full top-3 right-3">
-                  <Bookmark
-                    className="w-6 h-6 text-white"
-                    aria-label="스크랩 아이콘"
-                  />
-                </div>
-              )} */}
-
               <div className="p-2">
                 <h3 className="pb-[3.2px] text-[16px] font-bold truncate text-sky-500 line-clamp-1">
                   {item.title}

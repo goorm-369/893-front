@@ -125,7 +125,7 @@ export default async function Home() {
         </div>
         {/* 7. 경매 임박 물품 */}
         <section className="pt-20" data-testid="auction-soon-list">
-          <h2 className="text-2xl font-bold …">경매 임박 물품</h2>
+          <h2 className="text-2xl font-bold mb-10">경매 임박 물품</h2>
           <AuctionSoonItemList auctionSoonItemList={auctionSoonItemList} />
         </section>
 

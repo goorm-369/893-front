@@ -74,11 +74,12 @@ export default function RealTimeRankingPanel({
               <div className="text-lg font-bold text-gray-600">
                 {item.rankNum}
               </div>
-              <div className="flex-1">
-                <div className="text-sm font-semibold truncate max-w-[200px]">
+
+              <div className="flex-1 w-[190px] h-[80px]">
+                <div className="text-sm font-semibold truncate">
                   {item.title}
                 </div>
-                <div className="text-xs text-gray-500 truncate max-w-[200px]">
+                <div className="text-xs text-gray-500 truncate">
                   {item.description}
                 </div>
                 <div className="text-xs text-gray-400 mt-1">
@@ -90,13 +91,15 @@ export default function RealTimeRankingPanel({
                     : `스크랩 ${item.scrapCount}`}
                 </div>
               </div>
-              <Image
-                src={item.thumbnailUrl}
-                alt="썸네일"
-                height={80}
-                width={160}
-                className="w-[160px] h-[80px] rounded object-cover border"
-              />
+              <div className="flex-shrink-0 ml-auto">
+                <Image
+                  src={item.thumbnailUrl}
+                  alt="썸네일"
+                  width={160}
+                  height={80}
+                  className="w-[160px] h-[80px] rounded object-cover border"
+                />
+              </div>
             </div>
           ))}
         </div>

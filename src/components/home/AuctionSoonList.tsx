@@ -105,7 +105,7 @@ export default function AuctionSoonItem({
 
         <button
           onClick={handleParticipateClick}
-          className="mt-3 w-full py-1.5 text-sm rounded bg-gray-200 text-gray-400 hover:bg-gray-400 hover:text-gray-600 transition cursor-pointer"
+          className="mt-3 w-full py-1.5 text-sm rounded bg-gray-200 text-gray-600 hover:bg-gray-400 hover:text-gray-800 transition cursor-pointer"
         >
           지금 참여하기
         </button>

@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
+
+import withBundleAnalyzer from '@next/bundle-analyzer';
+const isAnalyze = process.env.ANALYZE === 'true';
 const nextConfig = {
+  // SWC 기반 압축 활성화
+  swcMinify: true,
+
   images: {
     remotePatterns: [
       {
@@ -24,4 +30,7 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+
+export default withBundleAnalyzer({
+  enabled: isAnalyze,
+})(nextConfig);

@@ -34,7 +34,7 @@ export function makeQueryString(
 }
 
 export async function getSearchProducts(
-  searchParams: Record<string, string | string[] | undefined>
+  searchParams: Record<string, string | string[] | undefined>, cookieHeader : string
 ): Promise<BaseResponse<SearchListResponse>> {
   const queryString = makeQueryString(searchParams);
 
@@ -43,6 +43,9 @@ export async function getSearchProducts(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auctions/search${queryString}`,
       {
         cache: "no-store",
+        headers: {
+          Cookie: cookieHeader,
+        },
       }
     );
 

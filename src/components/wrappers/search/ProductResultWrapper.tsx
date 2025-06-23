@@ -9,7 +9,9 @@ export default async function ProductResultWrapper({ searchParams }: { searchPar
   const cookieStore = cookies();
 	const accessToken = cookieStore.get('accessToken')?.value;
 	const isLoggedIn = accessToken ? true : false;
-  const products = await getSearchProducts(searchParams);
+  const cookieHeader = accessToken ? `accessToken=${accessToken}` : '';
+
+  const products = await getSearchProducts(searchParams, cookieHeader);
   const currentPage = searchParams.page ? parseInt(searchParams.page as string) : 1;
 
   return (

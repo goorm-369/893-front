@@ -17,10 +17,16 @@ export async function getBidData(auctionId: number): Promise<AuctionBidData | nu
   }
 }
 
-export const getProductData = async (auctionId: number): Promise<Product | null> => {
+export const getProductData = async (auctionId: number, cookieHeader: string): Promise<Product | null> => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auctions/${auctionId}`,{
       method: "GET",
+      headers: {
+        Cookie: cookieHeader,
+      },
+      next: {
+        revalidate: 86400,
+      },
     });
     const data = await response.json();
     return data?.data;

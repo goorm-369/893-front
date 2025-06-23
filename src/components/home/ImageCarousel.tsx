@@ -3,6 +3,7 @@ import { ChevronLeft } from "lucide-react";
 import { ChevronRight } from "lucide-react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
+
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
@@ -12,6 +13,8 @@ export interface Slide {
   imageUrl: string;
   label?: string;
 }
+
+
 
 
 export default function ImageCarousel() {
@@ -29,7 +32,7 @@ export default function ImageCarousel() {
           el: ".custom-progress", // 외부 진행 바 DOM 연결
         }}
         slidesPerView={1}
-        loop
+        loop={false}
         className="relative h-full overflow-visible rounded-xl"
       >
         {slides.map((slide, idx) => (

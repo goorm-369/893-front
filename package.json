@@ -12,7 +12,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:coverage:open": "jest --coverage && open coverage/lcov-report/index.html"
+    "test:coverage:open": "jest --coverage && open coverage/lcov-report/index.html",
+    "type": "module"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.13",
@@ -27,7 +28,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
-    "firebase": "^11.7.1",
     "husky": "^9.1.7",
     "lucide-react": "^0.503.0",
     "next": "14.2.28",
@@ -45,6 +45,7 @@
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
     "@commitlint/config-conventional": "^19.8.0",
+    "@next/bundle-analyzer": "^15.3.4",
     "@playwright/test": "^1.52.0",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",

@@ -7,10 +7,11 @@ export default async function DetailInfoWithBidWrapper({ auctionId }: { auctionI
   const cookieStore = cookies();
 	const accessToken = cookieStore.get('accessToken')?.value;
 	const isLoggedIn = accessToken ? true : false;
-  
+  const cookieHeader = accessToken ? `accessToken=${accessToken}` : '';
+
   const [initialBidData, productData] = await Promise.all([
 		getBidData(auctionId),
-		getProductData(auctionId),
+		getProductData(auctionId, cookieHeader),
 	]);
 
   if (!productData) return null;

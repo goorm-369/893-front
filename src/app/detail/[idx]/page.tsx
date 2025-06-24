@@ -6,6 +6,7 @@ import ImageSlider from "@/components/detail/ImageSlider";
 import ProductHeader from "@/components/detail/ProductHeader";
 import RelatedProductsWrapper from "@/components/wrappers/detail/RelatedProductsWrapper";
 import DetailInfoWithBidWrapper from "@/components/wrappers/detail/DetailInfoWithBidWrapper";
+import {cookies} from "next/headers";
 
 interface PageProps {
   params: { idx : string };
@@ -13,12 +14,15 @@ interface PageProps {
 
 export default async function DetailPage({ params }: PageProps) {
   const auctionId = parseInt(params?.idx);
+	const cookieStore = cookies();
+	const accessToken = cookieStore.get('accessToken')?.value;
+	const cookieHeader = accessToken ? `accessToken=${accessToken}` : '';
 
 	if (isNaN(auctionId)) {
 		return notFound();
 	}
 
-	const productData = await getProductData(auctionId);
+	const productData = await getProductData(auctionId, cookieHeader);
 	
 	if (!productData) return notFound();
 

@@ -74,7 +74,7 @@ export default function EditRegistration({ params }: AuctionIdProps) {
   useEffect(() => {
     (async () => {
       try {
-        const response = await getProductData(auctionId);
+        const response = await getProductData(auctionId, '');
         if (!response) return;
 
         const loaded: ServerImage[] = response.images.map((img) => ({

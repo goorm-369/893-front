@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { cookies } from "next/headers";
 import { Toaster } from "react-hot-toast";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react"
 
 // const pretendard = localFont({
 //   src: "../fonts/PretendardVariable.woff2",
@@ -47,6 +48,7 @@ export default function RootLayout({
         </header>
         {children}
         <SpeedInsights />
+        <Analytics />
         {/* Toaster 컴포넌트 추가 */}
         <Toaster
           position="top-center"

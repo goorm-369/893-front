@@ -31,7 +31,6 @@ export default function DetailInfoWithBid({
   return (
     <>
       <AuctionInfoWithBidInteraction
-        initialBidData={initialBidData}
         product={product}
         isLoggedIn={isLoggedIn}
         bidData={bidData}

@@ -7,34 +7,33 @@ import { AuctionBidData, Bid, Product, Status } from "@/types/productData";
 import { getRemainTime } from "@/lib/util/detailpage";
 import { useRouter } from "next/navigation";
 import BidInteraction from "./BidInteraction";
+import { SSEAuctionStatus, SSEBidResult } from "@/types/sse.types";
 
 interface AuctionInfoWithBidInteractionProps {
-  initialBidData: AuctionBidData;
   product: Product;
   isLoggedIn: boolean;
   bidData: AuctionBidData;
   setBidData: React.Dispatch<React.SetStateAction<AuctionBidData>>;
 }
 
-export default function AuctionInfoWithBidInteraction({ initialBidData, product, isLoggedIn, bidData, setBidData }: AuctionInfoWithBidInteractionProps) {
-  const [currentPrice, setCurrentPrice] = useState<number>(initialBidData.currentPrice || product.basePrice);
+export default function AuctionInfoWithBidInteraction({ product, isLoggedIn, bidData, setBidData }: AuctionInfoWithBidInteractionProps) {
+  const currentPrice = bidData.currentPrice
 
   // 남은 시간과 시작 여부
   const { startTime, endTime } = product;
   const start = new Date(startTime).getTime();
   const end = new Date(endTime).getTime();
-  let currentAuctionState: Status = "pending";
-
-  if (Date.now() < start) {
-    currentAuctionState = "pending";
-  } else if (Date.now() < end) {
-    currentAuctionState = "active";
-  } else {
-    currentAuctionState = "completed";
-  }
-
-  const [auctionState, setAuctionState] = useState<Status>(currentAuctionState);
+  
+  const [auctionState, setAuctionState] = useState<Status>(product.status);
   const [remainTime, setRemainTime] = useState<number>(auctionState === "pending" ? getRemainTime(product.startTime) : getRemainTime(product.endTime));
+  const [isCancelable, setIsCancelable] = useState(bidData.canCancelBid);
+  const [cancelTimer, setCancelTimer] = useState<number>(0);
+  const [myBidId, setMyBidId] = useState<number | null>(
+    () => {
+      const v = window.sessionStorage.getItem("bidId");
+      return v ? Number(v) : null;
+    }
+  );
 
   // 시간 계산 useEffect
   useEffect(() => {
@@ -56,16 +55,6 @@ export default function AuctionInfoWithBidInteraction({ initialBidData, product,
       }
 
       setRemainTime(Math.max(Math.floor(timeDiff / 1000), 0));
-
-      if (now < start) {
-        setAuctionState("pending");
-      } else if (start <= now && now < end) {
-        setAuctionState("active");
-      } else {
-        setAuctionState("completed");
-        // router.refresh();
-        // TODO 결제하기 연동 때문에 넣었는데 추후 수정 필요
-      }
     }, 1000);
 
     return () => clearInterval(interval);
@@ -84,12 +73,12 @@ export default function AuctionInfoWithBidInteraction({ initialBidData, product,
     totalBidder: number;
   }) => {
     const newBid = data.bid;
-    setCurrentPrice(data.currentPrice);
     setBidData((prev) => {
       const updatedBids = [newBid, ...prev.bids];
       return {
         ...prev,
         bids: updatedBids,
+        currentPrice: data.currentPrice,
         totalBid: data.totalBid,
         totalBidder: data.totalBidder,
       };
@@ -105,10 +94,9 @@ export default function AuctionInfoWithBidInteraction({ initialBidData, product,
       const updatedCancelledBids = [bidToCancel, ...prev.cancelledBids];
       
       const newCurrentPrice = updatedBids.length > 0 ? updatedBids[0].bidPrice : product.basePrice;
-
-      setCurrentPrice(newCurrentPrice);
       return {
         ...prev,
+        currentPrice: newCurrentPrice,
         bids: updatedBids,
         cancelledBids: updatedCancelledBids,
         totalBid: updatedBids.length,
@@ -117,16 +105,37 @@ export default function AuctionInfoWithBidInteraction({ initialBidData, product,
   };
 
   useEffect(() => {
-    const eventSource = new EventSource(
+    if (isCancelable && cancelTimer > 0) {
+      const interval = setInterval(() => {
+        setCancelTimer((prev) => {
+          if (prev && prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev! - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [cancelTimer, isCancelable]);
+
+  useEffect(() => {
+    const eventSourcePublic = new EventSource(
       `${process.env.NEXT_PUBLIC_API_URL}/api/auctions/${product.auctionId}/stream`,
       { withCredentials: true }
     );
 
-    eventSource.addEventListener("connect", (event) => {
+    const eventSourcePrivate = new EventSource(
+      // ${product.auctionId}
+      `${process.env.NEXT_PUBLIC_API_URL}/api/auctions/user/stream`,
+      { withCredentials: true }
+    );
+
+    eventSourcePublic.addEventListener("connect", (event) => {
       console.log("SSE connected:", event.data);
     });
 
-    eventSource.addEventListener("bid-update", (event) => {
+    eventSourcePublic.addEventListener("bid-update", (event) => {
       try {
         const data = JSON.parse(event.data);
 
@@ -136,17 +145,51 @@ export default function AuctionInfoWithBidInteraction({ initialBidData, product,
           updateBidDataFromSSE(data);
         }
       } catch (error) {
-        console.error("SSE parse error:", error);
+        console.error("SSE Bid Update Error:", error);
       }
     });
 
-    eventSource.onerror = (err) => {
+    eventSourcePrivate.addEventListener("bid-result", (event) => {
+      try {
+        const data = JSON.parse(event.data) as SSEBidResult;
+        setIsCancelable(data.data.canCancelBid);
+        setMyBidId(data.data.bid.bidId);
+        window.sessionStorage.setItem("bidId", data.data.bid.bidId.toString());
+        const createdAt = new Date(data.data.bid.createdAt);
+        const cancelAvailableDate = new Date(createdAt.getTime() + 60 * 1000);
+        setCancelTimer(getRemainTime(cancelAvailableDate.toISOString()));
+      } catch (error) {
+        console.error("SSE Bid Update Error:", error);
+      }
+    });
+
+    eventSourcePublic.addEventListener("status-update", (event) => {
+      try {
+        const data = JSON.parse(event.data) as SSEAuctionStatus;
+        setAuctionState(data.status);
+        if (data.status === "active") {
+          setRemainTime(getRemainTime(product.endTime));
+        } else if (data.status === "completed") {
+          setRemainTime(0);
+          router.refresh();
+        }
+      } catch (error) {
+        console.error("SSE Auction Status Update Error:", error);
+      }
+    });
+
+    eventSourcePrivate.onerror = (err) => {
+      console.error("SSE error:", err);
+    };
+
+    eventSourcePublic.onerror = (err) => {
       console.error("SSE error:", err);
     };
 
     return () => {
       console.log('언 마운트 되며 SSE 정리')
-      eventSource.close();
+      eventSourcePublic.close();
+      eventSourcePrivate.close();
     };
   }, [product.auctionId]);
 
@@ -177,12 +220,16 @@ export default function AuctionInfoWithBidInteraction({ initialBidData, product,
           <hr className="border-gray-300 my-4" />
           <BidInteraction
             product={product}
-            auctionBidData={bidData}
             removeBidData={removeBidData}
             isLoggedIn={isLoggedIn}
             currentPrice={currentPrice}
             remainTime={remainTime}
             auctionState={auctionState}
+            isCancelable={isCancelable}
+            myBidId={myBidId}
+            setMyBidId={setMyBidId}
+            cancelTimer={cancelTimer}
+            setCancelTimer={setCancelTimer}
           />
         </>
       )}

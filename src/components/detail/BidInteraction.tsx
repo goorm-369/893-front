@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Product, AuctionBidData, Status } from "@/types/productData";
+import { Product, Status } from "@/types/productData";
 import {
   cancelBid,
   postBid,
@@ -9,42 +9,39 @@ import {
 import toast from "react-hot-toast";
 import { TriangleAlert } from "lucide-react";
 import WarningModal from "./WarningModal";
-import { numberToKorean, getRemainTime, formatTime } from "@/lib/util/detailpage";
+import { numberToKorean, formatTime } from "@/lib/util/detailpage";
 import { AxiosError } from "axios";
 
 interface BidInteractionProps {
   product: Product;
-  auctionBidData: AuctionBidData;
   removeBidData: (bidId: number) => void;
   isLoggedIn: boolean;
   currentPrice: number;
   remainTime: number;
   auctionState: Status;
+  isCancelable: boolean;
+  myBidId: number | null;
+  setMyBidId: (myBidId: number | null) => void;
+  cancelTimer: number;
+  setCancelTimer: (cancelTimer: number) => void;
 }
 
 export default function BidInteraction({
   product,
-  auctionBidData,
   removeBidData,
   isLoggedIn,
   currentPrice,
   remainTime,
   auctionState,
+  isCancelable,
+  myBidId,
+  setMyBidId,
+  cancelTimer,
+  setCancelTimer,
 }: BidInteractionProps) {
-  const [myBidId, setMyBidId] = useState<number | null>(
-    () => {
-      const v = window.sessionStorage.getItem("bidId");
-      return v ? Number(v) : null;
-    }
-  );
   const [bidAmount, setBidAmount] = useState<number>(Number.isFinite(currentPrice) ? currentPrice + 100 : product.basePrice);
   const [show, setShow] = useState(false);
-  const [isCancelable, setIsCancelable] = useState(auctionBidData.canCancelBid);
-  const myRecentBidCreatedDate = auctionBidData?.recentUserBid?.createdAt ? new Date(auctionBidData?.recentUserBid?.createdAt) : null;
-  const cancelAvailableDate = myRecentBidCreatedDate ? new Date(myRecentBidCreatedDate.getTime() + 60 * 1000) : null;
-  const [cancelTimer, setCancelTimer] = useState<number>(getRemainTime(cancelAvailableDate?.toISOString() || ""));
   const [isLoading, setIsLoading] = useState(false);
-
   const isBidAvailable = !product.hasBeenPaid && remainTime > 0 && !product.isSeller && auctionState === "active";
 
   const handleBid = async () => {
@@ -72,18 +69,9 @@ export default function BidInteraction({
         bidPrice: bidAmount,
       });
 
-      if (response) {
-        const bidResponse = response.data;
-        window.sessionStorage.setItem("bidId", bidResponse.bid.bidId.toString());
-        setMyBidId(bidResponse.bid.bidId);
-
-        const createdDate = new Date(bidResponse.bid.createdAt);
-        const cancelDate = new Date(createdDate.getTime() + 60 * 1000);
-        setCancelTimer(getRemainTime(cancelDate.toISOString()));
-        
-        setIsCancelable(bidResponse.canCancelBid);
+      if (response.message === "success") {
+        toast.success("입찰이 성공적으로 처리되었습니다.");
       }
-      toast.success("입찰이 성공적으로 처리되었습니다.");
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         console.error("서버 응답 내용:", error.response?.data);
@@ -142,21 +130,6 @@ export default function BidInteraction({
       setBidAmount(currentPrice + 100);
     }
   }, [currentPrice]);
-
-  useEffect(() => {
-    if (isCancelable && cancelTimer && cancelTimer > 0) {
-      const interval = setInterval(() => {
-        setCancelTimer((prev) => {
-          if (prev && prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev! - 1;
-        });
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [cancelTimer]);
 
   if (!product.auctionId || !product || typeof currentPrice !== "number") {
     return <div className="text-red-500">잘못된 경매 정보입니다.</div>;
